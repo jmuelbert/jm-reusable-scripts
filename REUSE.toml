@@ -1,0 +1,34 @@
+version = 1
+SPDX-PackageName = "jm-python-config"
+SPDX-PackageSupplier = "<juergen.muelbert@outlook.de>"
+SPDX-PackageDownloadLocation = "https://www.github.com/jmuelbert/jm-python-config"
+
+[[annotations]]
+path = ["src/**"]
+precedence = "aggregate"
+SPDX-FileCopyrightText = "Jürgen Mülbert <juergen.muelbert@outlook.de>"
+SPDX-License-Identifier = "GPL-3.0-or-later"
+
+[[annotations]]
+path = ["**.ui", "**.qrc", "**.json", "docs/collection/about.txt", "**.frag", "**.geom", "**.vert", "**.ts", "**.qm", "**.map"]
+precedence = "aggregate"
+SPDX-FileCopyrightText = "Jürgen Mülbert <juergen.muelbert@outlook.de>"
+SPDX-License-Identifier = "GPL-2.0-or-later"
+
+[[annotations]]
+path = ["CHANGES", "CONTRIBUTORS.txt", "INSTALL.md", "README.md", "docs/manual/style/**", "docs/api/**.html", "docs/man/**.pod", "docs/**.pdf"]
+precedence = "aggregate"
+SPDX-FileCopyrightText = "Jürgen Mülbert <juergen.muelbert@outlook.de>"
+SPDX-License-Identifier = "GPL-2.0-or-later"
+
+[[annotations]]
+path = [ ".codespellrc", ".git-blame-ignore-revs", ".gitattributes", ".gitignore",  ".pep8", ".pre-commit-config.yaml", "distro/**", ".github/**"]
+precedence = "aggregate"
+SPDX-FileCopyrightText = "Jürgen Mülbert <juergen.muelbert@outlook.de>"
+SPDX-License-Identifier = "BSD-3-Clause"
+
+[[annotations]]
+path = ["docs/manual/**/**.png", "docs/api/**.png", "tests/manual/**.png"]
+precedence = "aggregate"
+SPDX-FileCopyrightText = "Jürgen Mülbert <juergen.muelbert@outlook.de>"
+SPDX-License-Identifier = "GPL-2.0-or-later"

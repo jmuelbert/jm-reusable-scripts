@@ -1,0 +1,353 @@
+# SPDX-License-Identifier: EUPL-1.2
+# SPDX-FileCopyrightText: 2025-present Jürgen Mülbert <juergen.muelbert@outlook.de>
+#
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "jm-reusable-scripts"
+dynamic = ["version"]
+description = 'Reusable scripts for Python projects'
+readme = "README.md"
+requires-python = ">=3.11"
+license = "EUPL-1.2"
+authors = [{ name = "Jürgen Mülbert", email = "juergen.muelbert@outlook.de" }]
+keywords = ["doc", "documentation", "documentaion-quality", "quality", "translations"]
+
+classifiers = [
+  "Development Status :: 4 - Beta",
+  "License :: OSI Approved :: European Union Public Licence 1.2 (EUPL 1.2)",
+  "Intended Audience :: Developers",
+  "License :: OSI Approved :: European Union Public Licence 1.2 (EUPL 1.2)",
+  "Operating System :: OS Independent",
+  "Operating System :: MacOS",
+  "Operating System :: Microsoft :: Windows",
+  "Operating System :: POSIX",
+  "Operating System :: Unix",
+  "Programming Language :: Python",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Programming Language :: Python :: Implementation :: CPython",
+  "Programming Language :: Python :: Implementation :: PyPy",
+]
+dependencies = [
+  "rich>=14.0.0,<15.0.0",
+  "typer>=0.9.0,<1.0.0",
+  "tomli-w>=1.2.0,<=2.0.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/jmuelbert/jm-reusable-scripts"
+Documentation = "https://jmuelbert.github.io/jm-reusable-scripts/"
+Repository = "https://github.com/jmuelbert/jm-reusable-scripts.git"
+Issues = "https://github.com/jmuelbert/jm-reusable-scripts/issues"
+Changelog = "https://github.com/jmuelbert/jm-reusable-scripts/blob/main/CHANGELOG.md"
+Source = "https://github.com/jmuelbert/jm-reusable-scripts"
+
+[tool.hatch.version]
+path = "src/jm_reusable_scripts/__about__.py"
+
+[tool.hatch.envs.default]
+installer = "uv"
+
+[tool.hatch.metadata]
+allow-direct-references = true
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/jm_reusable_scripts"]
+macos-max-compat = true
+
+[tool.hatch.build.targets.sdist]
+include = [
+  "src",
+  "README.md",
+  "LICENSE",
+  "pyproject.toml"
+  ]
+
+  [[tool.hatch.envs.test.matrix]]
+  python = ["3.11", "3.12", "3.13"]
+
+  [tool.hatch.envs.hatch-test]
+  default-args = [""]
+  randomize = true
+  parallel = true
+  # retries = 2
+
+  [tool.hatch.envs.test]
+  installer = "uv"
+  dependencies = [
+    "coverage[toml]>=7.4.3",
+    "pytest>=8.2.1",
+    "pytest-mock>=3.14.0",
+    "pytest-cov>=4.1.0",
+    "pytest-timeout>=2.3.1",
+    "pytest-randomly>=3.15.0",
+    "fastapi>=0.115.8",
+    "typeguard>=4.1.5",
+    "xdoctest>=0.15.10",
+    "pytest-randomly>=3.15.0",
+    "pytest-sugar>=1.0.0",
+    "pylint-pytest>=1.1.2",
+  ]
+
+  [tool.hatch.envs.test.scripts]
+  test = "pytest tests/ {args}"
+  cov = "pytest --cov --cov-report term-missing:skip-covered --cov-report xml --cov-report html --cov=src tests/"
+  typeguard = "pytest --typeguard-packages=src"
+  doctest = "pytest --doctest-modules"
+
+  [tool.pytest.ini_options]
+  minversion = "6.0"
+  addopts = ["-ra", "--strict-markers", "--strict-config", "--doctest-modules"]
+  testpaths = ["tests"]
+  filterwarnings = [
+      "error",
+  ]
+  markers = [
+      "unit: mark a test as a unit test",
+      "integration: mark a test as an integration test",
+      "e2e: mark a test as an end-to-end test",
+      "component: mark a test as a component test",
+      "slow: mark a test as slow",
+      "smoke: mark a test as a smoke test",
+      "regression: mark a test as a regression test",
+  ]
+
+[tool.coverage.run]
+source_pkgs = ["jm_reusable_scripts", "tests"]
+branch = true
+parallel = true
+omit = [
+  "src/jm_reusable_scripts/__about__.py",
+]
+
+[tool.coverage.paths]
+jm_reusable_scripts = ["src/jm_reusable_scripts", "*/jm-reusable-scripts/src/jm_reusable_scripts"]
+tests = ["tests", "*/jm-reusable-scripts/tests"]
+
+[tool.coverage.report]
+exclude_lines = [
+  "no cov",
+  "if __name__ == .__main__.:",
+  "if TYPE_CHECKING:",
+]
+fail_under = 90
+show_missing = true
+
+[tool.hatch.envs.lint]
+installer = "uv"
+dependencies = [
+  "pre-commit>=3.6.0",
+  "ruff>=0.1.0",
+  "reuse>=5.0.2",
+  "pyright>=1.1.350"
+]
+
+[tool.hatch.envs.lint.scripts]
+# Combined style linting
+check = "ruff check ."
+fix = "ruff check . --fix"
+style = ["ruff check .", "ruff format --check ."]
+typing = "pyright"
+license = "reuse lint"
+precommit = "pre-commit run --all-files"
+
+# Aggregate linting tasks
+all = ["style", "typing", "license"]
+
+[tool.hatch.envs.docs]
+installer = "uv"
+dependencies = [
+  "mkdocs>=1.6.1,<1.7",
+  "mkdocs-material[imaging]>=9.6.7,<9.7",
+  "mkdocs-static-i18n>=1.3.0,<1.4",
+  "mkdocs-awesome-pages-plugin>=2.10.1,<2.20",
+  "mkdocs-click>=0.8.1,<0.9",
+  "mkdocs-minify-plugin>=0.8.0,<0.9",
+  "mkdocs-mermaid2-plugin>=1.2.0,<1.3",
+  "mkdocs-git-revision-date-localized-plugin>=1.3.0,<1.4",
+  "mkdocs-glightbox>=0.4.0,<0.5",
+  "mkdocs-linkcheck>=1.0.6,<1.1",
+  "mkdocs-section-index>=0.3.0,<0.4",
+  "mike>=2.1.3,<2.2",
+  "mkdocstrings-python>=1.16.2,<1.17.0",
+  "pymdown-extensions>=10.14,<10.15",
+  "griffe>=1.6.0,<1.7.0",
+  "pyaml>=20.0.0",
+  "babel>=2.0.0",
+  "jm-reusable-scripts @ git+https://github.com/jmuelbert/jm-reusable-scripts.git"
+]
+
+[tool.hatch.envs.docs.scripts]
+qualitycheck = "doc-quality-check" # Calls the installed command
+prettify = "hatch run python -m json.tool --sort-keys --no-indent ./site/search/search_index.json ./site/search/search_index.json"
+validate-links = "mkdocs linkcheck"
+build-only = ["mkdocs build --clean {args}"]
+build = ["build-only {args}", "prettify"]
+serve = "mkdocs serve --dev-addr localhost:8090 {args}"
+
+[tool.ruff]
+# The target Python version.
+target-version = "py312"
+line-length = 120
+
+[tool.ruff.format]
+preview = true
+docstring-code-format = true
+quote-style = "double"
+indent-style = "space"
+skip-magic-trailing-comma = false
+line-ending = "lf"
+
+
+[tool.ruff.lint]
+# Select all available rules and then explicitly ignore those not desired.
+# This ensures new rules are automatically picked up unless ignored.
+select = ["ALL"]
+
+# Rules to ignore.
+ignore = [
+    # Docstring rules (D): Generally ignored for brevity or handled by other tools.
+    "D100", "D101", "D103", "D104", "D105", "D107", # Missing docstrings
+    "D203", "D212", "D213", # Blank lines/summary position
+    # "D406", "D407", "D413", "D416", "D417", # Section formatting/missing descriptions
+
+    # Type annotation rules (ANN): Rely on dedicated type checker (e.g., MyPy).
+    "ANN401", # Disallowed Any
+
+    # Pylint rules (PL):
+    "PLR0913", # Too many arguments
+    "PLR0911", # Too many return statements
+    "PLR0912", # Too many branches (complexity, covered by C901 often)
+    "PLW0603", # Using the global statement
+    "PLR0402", # Consider using a generator instead of a list comprehension
+    "PLW2901", # Loop variable `X` overwritten by assignment
+    "PLW1514", # Using `open` without explicit encoding
+    "PLW0120", # Else clause on loop without a break statement
+    "PLW0602", # Using `global` statement
+
+    # Security rules (S): High false positive rates for linting; prefer dedicated security scanners.
+    "S101", # Use of `assert`
+    "S301", "S307", "S311", # Insecure modules/functions (pickle, eval, random)
+    "S603", "S607", "S608", "S609", "S701", # Subprocess, hardcoded password, yaml.load
+
+    # Other common ignores (often handled by formatter, or subjective):
+    "E501",   # Line too long (handled by `ruff format`)
+    "COM812", # Missing trailing comma (handled by `ruff format`)
+    "ISC001", # Implicit string concatenation (handled by `ruff format`)
+    "W191",   # Indentation contains tabs (formatter ensures spaces)
+    "ERA001", # Commented out code
+    "UP006",  # dict.keys() == other_dict.keys() should be dict.keys() == other_dict.keys()
+    # If you want to enable these, remove from ignore:
+    # "UP007", # Use X | Y for type hints in Python 3.10+
+    # "UP009", # Use `X` instead of `typing.X`
+    # "UP010", # Unnecessary `else` after `return`
+    # "UP038", # `f""` instead of `"{}".format()`
+    # "UP039", # Use `tuple` instead of `(X,)` for single-element tuples
+    # "UP040", # Use `.` instead of `os.path.join`
+    # "UP041", # Use `Path.joinpath` instead of `Path / "child"`
+    # Pytest rules (PT): Ignore if you prefer non-snake_case for fixtures.
+    "PT006", "PT007", "PT013", "PT015",
+
+    # Relative imports (TID252): Can be useful in some package structures.
+    "TID252",
+    "Q000", # This one is often specific and might not be universally applicable for ignoring.
+]
+
+[tool.ruff.lint.per-file-ignores]
+"__init__.py" = ["F401", "D"]
+"**/migrations/*.py" = ["F401", "E501", "D", "PL"]
+"tests/*.py" = ["S101", "D", "ANN"]
+"scripts/*.py" = ["T20"]
+"resources_rc.py" = ["N802"]
+
+[tool.ruff.lint.isort]
+# Ensure imports are organized consistently.
+# Replace "your_package_name" with the actual top-level package name(s) of your project.
+# This helps isort correctly group your internal imports.
+known-first-party = ["jm-python-config"]
+combine-as-imports = true # Combine imports like `import os, sys` into `import os; import sys`
+force-single-line = false # Set to true if you prefer all imports on a single line
+
+[tool.ruff.lint.flake8-tidy-imports]
+ban-relative-imports = "all"
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
+
+[tool.gitleaks]
+enable-rules = ["generic-api-key", "python-password", "pyside-secret"]
+allow-paths = ["assets/translations/**", "LICENSES/**", "tests/**"]
+
+[tool.markdownlint]
+config_file = ".markdownlint.json" # Specify the config file
+
+[tool.yamllint]
+extends = "default"
+strict = true
+ignore = [".github/workflows/", "LICENSES/", "assets/translations/"]
+
+[tool.yamllint.rules]
+braces = { max-spaces-inside = 1, min-spaces-inside = 0 }
+brackets = { max-spaces-inside = 1, min-spaces-inside = 0 }
+colons = { max-spaces-after = 1, min-spaces-after = 1 }
+commas = { max-spaces-after = 1, min-spaces-after = 0 }
+document-start = "enable"
+empty-lines = { max-end = 0, max-start = 0 }
+indentation = { spaces = 2, check-multi-line-strings = true }
+key-duplicates = "enable"
+line-length = { max = 100, allow-non-breakable-inline-mappings = true }
+new-lines = { type = "unix" }
+trailing-spaces = "enable"
+truthy = { allowed-values = ["true", "false"] }
+comments = { level = "warning", require-explanation = false, min-spaces-from-content = 1 }
+quoted-strings = { quote-type = "double", required = false }
+empty-values = { forbid-in-inline = true }
+
+[tool.pyright]
+# Specify the directories or files to check
+include = [
+    "src",
+    "tests"
+]
+# Exclude specific files or directories
+exclude = [
+    "src/some_module.py"  # Exclude specific files
+]
+
+# Specify type checking mode
+typeCheckingMode = "strict"  # Options: "off", "basic", "strict"
+
+# Specify additional options
+reportMissingImports = true
+reportUnusedImports = true
+reportUnusedFunction = true
+reportUnusedVariable = true
+reportGeneralTypeIssues = true
+
+[tool.proselint]
+max-line-length = 120
+checks = [
+  "typography.diacritical_marks",
+  "typography.exclamation",
+  "typography.quotes",
+  "misc.annotations",
+  "misc.link_review",
+  "security.password",
+  "spelling.able_atable",
+  "spelling.able_ible",
+  "spelling.athletes",
+  "spelling.em_im_en_in",
+  "spelling.er_or",
+  "spelling.in_un",
+  "spelling.misc",
+  "consistency.spacing",
+  "consistency.spelling",
+]
+
+[tool.xdoctest]
+style = "google"

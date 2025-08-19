@@ -1,0 +1,360 @@
+---
+# SPDX-FileCopyrightText: Jürgen Mülbert
+# SPDX-License-Identifier: EUPL-1.2
+
+name: Release Pipeline
+run-name: "${{ github.event_name == 'workflow_dispatch' && format('CI: {0}', github.ref_name) || '' }}"
+on:
+  push:
+    branches: [main, develop, release]
+    paths:
+      - src/*
+      - docs/*
+      - .github/workflows/ci.yml
+      - mkdocs.yml
+      - pyproject.toml
+  pull_request:
+    types: [opened, reopened, synchronize]
+  release:
+    types: [published]
+  workflow_dispatch:
+env:
+  FORCE_COLOR: '1'
+  PACKAGE_NAME: checkconnect
+defaults:
+  run:
+    shell: bash
+permissions:
+  contents: read
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    name: Validate Dependencies
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      pull-requests: write
+      security-events: write
+    steps:
+      - name: 🔒 Harden Runner
+        uses: step-security/harden-runner@v2
+        with:
+          egress-policy: audit
+      - name: 🧐 Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: 🔎 Dependency Review
+        id: review
+        uses: actions/dependency-review-action@v4
+        with:
+          comment-summary-in-pr: always
+          fail-on-severity: moderate
+          retry-on-snapshot-warnings: true
+          config-file: .github/dependency-review-config.yml
+
+      - name: 📊 Generate Report
+        if: always()
+        env:
+          DEPENDENCY_CHANGES: ${{ steps.review.outputs.dependency-changes }}
+          VULNERABLE_CHANGES: ${{ steps.review.outputs.vulnerable-changes }}
+          LICENSE_CHANGES: ${{ steps.review.outputs.invalid-license-changes }}
+          DENIED_CHANGES: ${{ steps.review.outputs.denied-changes }}
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const outputs = {
+              dependencyChanges: JSON.parse(process.env.DEPENDENCY_CHANGES || '[]'),
+              vulnerableChanges: JSON.parse(process.env.VULNERABLE_CHANGES || '[]'),
+              licenseChanges: JSON.parse(process.env.LICENSE_CHANGES || '[]'),
+              deniedChanges: JSON.parse(process.env.DENIED_CHANGES || '[]'),
+            };
+
+            let report = '## 📋 Dependency Review Report\n\n';
+
+            // Dependency Summary
+            report += `### 📑 Summary\n`;
+            report += `- Total Changes: ${outputs.dependencyChanges.length}\n`;
+            report += `- Vulnerable Changes: ${outputs.vulnerableChanges.length}\n`;
+            report += `- License Issues: ${outputs.licenseChanges.length}\n`;
+            report += `- Denied Changes: ${outputs.deniedChanges.length}\n\n`;
+
+            // Vulnerabilities
+            if (outputs.vulnerableChanges.length > 0) {
+              report += '### ⚠️ Vulnerable Changes\n\n';
+              outputs.vulnerableChanges.forEach(change => {
+                report += `- **${change.package.name}@${change.package.version}**: ${change.advisory.title}\n`;
+                report += `  - Severity: ${change.advisory.severity}\n`;
+                report += `  - Advisory: [${change.advisory.url}](${change.advisory.url})\n\n`;
+              });
+            } else {
+              report += '### ✅ No Vulnerable Changes Found\n\n';
+            }
+
+            // License Issues
+            if (outputs.licenseChanges.length > 0) {
+              report += '### 🚫 License Issues\n\n';
+              outputs.licenseChanges.forEach(change => {
+                report += `- **${change.package.name}@${change.package.version}**: ${change.license}\n`;
+                report += `  - Allowed Licenses: ${change.allowedLicenses.join(', ')}\n\n`;
+              });
+            } else {
+              report += '### ✅ No License Issues Found\n\n';
+            }
+
+            // Denied Changes
+            if (outputs.deniedChanges.length > 0) {
+              report += '### ❌ Denied Changes\n\n';
+              outputs.deniedChanges.forEach(change => {
+                report += `- **${change.package.name}@${change.package.version}**: ${change.reason}\n`;
+              });
+            } else {
+              report += '### ✅ No Denied Changes Found\n\n';
+            }
+
+            // Post Report only on pull_request
+            if (context.payload.pull_request) {
+              try {
+                await github.rest.issues.createComment({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: context.payload.pull_request.number,
+                  body: report
+                });
+              } catch (error) {
+                console.error("Failed to create comment:", error);
+              }
+            } else {
+              console.log("Not a pull request, skipping comment creation.");
+            }
+
+  checks:
+    name: Lint, Security, Pre-Commit Checks
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: 🔒 Harden Runner
+        uses: step-security/harden-runner@v2
+        with:
+          egress-policy: audit
+      - name: 🧐 Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Call Python Environment Setup
+        uses: ./.github/actions/python-setup
+        id: python-setup
+      - name: 🔧 Setup PNPM and Node.js
+        uses: pnpm/action-setup@v4
+        with:
+          version: latest
+          node_version: 'lts/*'
+          cache: 'pnpm'
+      - name: ⚙️ Install JavaScript Dependencies
+        run: pnpm install
+      - name: ⚙️ Install Python Dependencies
+        run: |
+          hatch env create lint
+          hatch env create security
+          hatch env create docs
+      - name: ✨ Run Prettier
+        run: pnpm dlx prettier --write .
+      - name: 🔍 Run Linters and Code Checks
+        run: hatch run lint:all
+      - name: 🔐 Run Security Checks
+        run: hatch run security:all
+      - name: 🔍 Trivy Security Scan
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'fs'
+          scan-ref: '.'
+          severity: 'CRITICAL,HIGH'
+      - name: 📚 Build and Validate Documentation
+        run: |
+          hatch run docs:build
+          hatch run docs:validate-links
+  test-and-build:
+    name: Test & Build
+    needs: [validate, checks]
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    environment: production
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    steps:
+      - name: 🔒 Harden Runner
+        uses: step-security/harden-runner@v2
+        with:
+          egress-policy: audit
+      - name: 🧰 Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Call Python Environment Setup
+        uses: ./.github/actions/python-setup
+        id: python-setup
+      - name: ⚙️ Install Dependencies for Test
+        run: hatch env create test
+      - name: Get Project Version
+        id: version
+        run: echo "version=$(hatch version)" >> "$GITHUB_OUTPUT"
+      - name: 🎨 Setup Qt Dependencies
+        if: runner.os == 'Linux'
+        uses: ./.github/actions/setup-qt-dependencies
+      - name: 🧪 Run Tests and Generate Coverage
+        if: runner.os == 'Linux'
+        id: coverage
+        run: |
+          sudo apt-get update
+            libegl1 \
+            libxkbcommon-x11-0 \
+            libxcb-icccm4 \
+            libxcb-image0 \
+            libxcb-keysyms1 \
+            libxcb-randr0 \
+            libxcb-render-util0 \
+            libxcb-xinerama0 \
+            xvfb
+          sudo Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &
+          hatch run test:cov
+          # Extract line coverage
+          COVERAGE=$(grep TOTAL coverage.xml | awk '{print $4}' | sed 's/%//')
+          echo "percentage=${COVERAGE}" >> "$GITHUB_OUTPUT"
+          if [ "${COVERAGE}" -lt "80" ]; then
+            echo "::warning::Coverage ${COVERAGE}% is below threshold of 80%"
+            exit 1
+          fi
+      - name: 🔍 Disambiguate Coverage Filename
+        if: runner.os == 'Linux'
+        run: mv .coverage ".coverage.${{ matrix.os }}"
+      - name: 📤 Upload Coverage Data
+        if: runner.os == 'Linux'
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-${{ matrix.os }}
+          path: .coverage*
+  release:
+    name: Create Release
+    needs: [test-and-build]
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    environment: production
+    permissions:
+      contents: write
+      id-token: write
+    steps:
+      - name: 🔒 Harden Runner
+        uses: step-security/harden-runner@v2
+        with:
+          egress-policy: audit
+      - name: 📥 Download Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist/
+      - name: 📝 Create GitHub Release
+        id: release
+        uses: softprops/action-gh-release@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          files: |
+            dist/*
+            LICENSE
+            README.md
+          generate_release_notes: true
+          discussion_category_name: Releases
+          body: |
+            ## Release ${{ needs.test-and-build.outputs.version }}
+
+            ### 📦 Assets
+            - Package: https://pypi.org/project/${{ env.PACKAGE_NAME }}/${{ needs.test-and-build.outputs.version }}
+
+            ### 📊 Quality Checks
+            - ✅ Matrix Tests
+            - ✅ Type Checking
+            - ✅ Documentation Tests
+            - ✅ Security Scans
+            - ✅ Pre-commit Hooks
+
+            ### 🔍 Verification
+            SHA256 hashes are available in the asset details.
+
+            ### 📚 Documentation
+            - Documentation: https://${{ env.PACKAGE_NAME }}.readthedocs.io/
+            - Changelog: https://github.com/${{ github.repository }}/blob/main/CHANGELOG.md
+      - name: 📢 Publish to PyPI
+        uses: pypa/gh-action-pypi-publish@v1
+        with:
+          password: ${{ secrets.PYPI_API_TOKEN }}
+          verbose: true
+
+  notify:
+    name: Notifications
+    needs: [test-and-build]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: 📧 Process Status
+        uses: actions/github-script@v7
+        with:
+          script: |
+            try {
+              const needsContext = context.needs || {}; // Add a fallback
+
+              const { test_and_build, issue, repo } = needsContext;
+
+              if (!test_and_build) {
+                console.log('test_and_build job was not run or unavailable, skipping notification.');
+                return;
+                }
+
+              if (!test_and_build.outputs || !test_and_build.outputs.version) {
+                console.log('test_and_build job does not have version output.');
+                return;
+                }
+
+              const version = test_and_build.outputs.version;
+              const releaseJob = needsContext.release; //Access this also through needsContext
+              const releaseResult = releaseJob ? releaseJob.result : null;
+
+              if(context.payload.pull_request) {
+                // Code for handling pull requests
+                await github.rest.issues.createComment({
+                  ...repo,
+                  issue_number: context.issue.number,
+                  body: `✅ Tests ran successfully for PR!\n📊 Coverage reports available in build artifacts`
+                  });
+
+              } else { // Handle release pushes
+
+                if (releaseResult === 'success') {
+                  await github.rest.issues.createComment({
+                    ...repo,
+                    issue_number: context.issue.number,
+                    body: `✅ Version ${version} published successfully!\n\n📦 PyPI: https://pypi.org/project/checkconnect/${version}\n📚 Docs: https://checkconnect.readthedocs.io/\n📊 Coverage reports available in build artifacts`
+                    });
+                } else if (releaseResult === 'failure') {
+                  await github.rest.issues.createComment({
+                    ...repo,
+                    issue_number: context.issue.number,
+                    body: `❌ Release failed for version ${version}.\n Please check: ${process.env.GITHUB_SERVER_URL}/${process.env.GITHUB_REPOSITORY}/actions/runs/${process.env.GITHUB_RUN_ID}`
+                    });
+                } else {
+                  console.log('Release job was not run, no release to notify.');
+                }
+              }
+            } catch (error) {
+              console.error("Error in notification script:", error);
+              // Optionally, fail the job if the notification script fails
+              core.setFailed(`Notification script failed: ${error.message}`);
+            }

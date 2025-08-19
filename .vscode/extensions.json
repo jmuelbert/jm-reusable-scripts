@@ -1,0 +1,33 @@
+{
+  "recommendations": [
+    "phoenisx.cssvar",
+    "esbenp.prettier-vscode",
+    "ms-pyright.pyright",
+    "ms-python.python",
+    "ms-python.pylint",
+    "ms-python.vscode-pylance",
+    "ms-python.debugpy",
+    "ms-vscode-remote.remote-container",
+    "donjayamanne.python-environment-manager",
+    "charliermarsh.ruff",
+    "HTMLHint.vscode-htmlhint",
+    "AquaSecurityOfficial.trivy-vulnerability-scanner",
+    "monosans.djlint",
+    "svelte.svelte-vscode",
+    "MS-CST-E.vscode-devskim",
+    "streetsidesoftware.code-spell-checker",
+    "stylelint.vscode-stylelint",
+    "aquasecurityofficial.trivy-vulnerability-scanner",
+    "editorconfig.editorconfig",
+    "tamasfe.even-better-toml",
+    "redhat.vscode-yaml",
+    "zainchen.json",
+    "github.vscode-github-actions",
+    "github.vscode-pull-request-github",
+    "github.codespaces",
+    "visualstudioexptteam.vscodeintellicodes",
+    "yzhang.markdown-all-in-one",
+    "davidanson.vscode-markdownlint",
+    "biomejs.biome"
+  ]
+}

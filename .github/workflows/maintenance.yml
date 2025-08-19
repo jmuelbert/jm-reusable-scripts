@@ -1,0 +1,164 @@
+---
+# SPDX-License-Identifier: EUPL-1.2
+# SPDX-FileCopyrightText: 2025-present Jürgen Mülbert <juergen.muelbert@outlook.de>
+name: Repository Maintenance
+
+on:
+  schedule:
+    - cron: '0 0 * * 0' # Run at midnight every Sunday
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  issues: write
+  pull-requests: write
+
+jobs:
+  maintenance:
+    name: Repository Cleanup
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: 🔒 Harden Runner
+        uses: step-security/harden-runner@v2
+        with:
+          egress-policy: audit
+
+      - name: 🧰 Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: 🧹 Process Stale Items
+        id: stale
+        uses: actions/stale@v9
+        with:
+          stale-issue-message: |
+            This issue has been automatically marked as stale due to 30 days of inactivity.
+            It will be closed in 5 days if no further activity occurs.
+
+            - Comment or update to keep this open
+            - Remove `stale` label to prevent closure
+            - Close this issue if it's resolved
+          close-issue-message: |
+            This issue has been closed due to inactivity.
+            Please reopen if still relevant.
+
+          stale-pr-message: |
+            This PR has been marked as stale due to 45 days of inactivity.
+            It will be closed in 10 days if no further activity occurs.
+
+            - Comment or update to keep this open
+            - Remove `stale` label to prevent closure
+          close-pr-message: |
+            This PR has been closed due to inactivity.
+            Feel free to reopen if you'd like to continue working on it.
+
+          days-before-issue-stale: 30
+          days-before-pr-stale: 45
+          days-before-issue-close: 5
+          days-before-pr-close: 10
+
+          stale-issue-label: stale
+          stale-pr-label: stale
+
+          exempt-issue-labels: |
+            security
+            pinned
+            bug
+            enhancement
+          exempt-pr-labels: |
+            security
+            pinned
+            dependencies
+
+          delete-branch: true
+          enable-statistics: true
+
+      - name: 🔐 Lock Inactive Threads
+        id: lock
+        uses: dessant/lock-threads@v5
+        with:
+          issue-inactive-days: 182 # 6 months
+          pr-inactive-days: 90 # 3 months
+          issue-comment: |
+            This issue has been locked due to 6 months of inactivity.
+            Please open a new issue if you have a similar problem.
+          pr-comment: |
+            This PR has been locked due to 3 months of inactivity.
+            Please open a new PR if you want to make similar changes.
+          log-output: true
+          exclude-any-issue-labels: |
+            keep-unlocked
+            security
+          exclude-any-pr-labels: |
+            keep-unlocked
+            security
+            dependencies
+
+      - name: 📊 Generate Report and Notify Team
+        if: always()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const staleStats = {
+              issues: parseInt('${{ steps.stale.outputs.stale-issue-count }}') || 0,
+              prs: parseInt('${{ steps.stale.outputs.stale-pr-count }}') || 0,
+              closedIssues: parseInt('${{ steps.stale.outputs.closed-issue-count }}') || 0,
+              closedPrs: parseInt('${{ steps.stale.outputs.closed-pr-count }}') || 0
+            };
+
+            const lockStats = {
+              lockedIssues: parseInt('${{ steps.lock.outputs.locked-issues }}') || 0,
+              lockedPrs: parseInt('${{ steps.lock.outputs.locked-pull-requests }}') || 0,
+              skippedIssues: parseInt('${{ steps.lock.outputs.skipped-issues }}') || 0,
+              skippedPrs: parseInt('${{ steps.lock.outputs.skipped-pull-requests }}') || 0
+            };
+
+            const report = `## 🧹 Maintenance Report
+
+            ### Stale Items
+            - Issues marked stale: ${staleStats.issues}
+            - PRs marked stale: ${staleStats.prs}
+            - Issues closed: ${staleStats.closedIssues}
+            - PRs closed: ${staleStats.closedPrs}
+
+            ### Locked Items
+            - Issues locked: ${lockStats.lockedIssues}
+            - PRs locked: ${lockStats.lockedPrs}
+            - Issues skipped: ${lockStats.skippedIssues}
+            - PRs skipped: ${lockStats.skippedPrs}
+
+            ### Configuration
+            - Issue stale period: 30 days
+            - PR stale period: 45 days
+            - Issue lock period: 182 days
+            - PR lock period: 90 days`;
+
+            const totalProcessed = staleStats.closedIssues + staleStats.closedPrs + lockStats.lockedIssues + lockStats.lockedPrs;
+
+            if (staleStats.closedIssues > 0 || staleStats.closedPrs > 0 || lockStats.lockedIssues > 0 || lockStats.lockedPrs > 0) {
+              // Create a new issue with the maintenance report
+              await github.rest.issues.create({
+                ...context.repo,
+                title: `Maintenance Report ${new Date().toISOString().split('T')[0]}`,
+                body: report,
+                labels: ['maintenance', 'automated']
+              });
+
+              // Add a comment to the latest issue
+              const message = `### 🧹 Maintenance Complete
+
+              - Items processed: ${totalProcessed}
+              - Check the latest maintenance report for details
+
+              [View Report](${process.env.GITHUB_SERVER_URL}/${process.env.GITHUB_REPOSITORY}/issues?labels=maintenance)`;
+
+              await github.rest.issues.createComment({
+                ...context.repo,
+                issue_number: context.issue.number,
+                body: message
+              });
+            }
