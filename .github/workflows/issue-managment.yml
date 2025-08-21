@@ -1,6 +1,7 @@
 ---
 # SPDX-License-Identifier: EUPL-1.2
 # SPDX-FileCopyrightText: 2025-present Jürgen Mülbert <juergen.muelbert@outlook.de>
+
 name: Issue Management
 
 on:
@@ -23,8 +24,7 @@ jobs:
     if: github.actor != 'dependabot[bot]'
     runs-on: ubuntu-latest
     timeout-minutes: 10
-    # TODO: #256 Runs in failure: Error: Failed to create the new release: Error: ⚠️ GitHub Releases requires a tag 
-  
+
     outputs:
       labeled: ${{ steps.triage.outputs.labeled }}
       priority: ${{ steps.triage.outputs.priority }}

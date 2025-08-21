@@ -1,3 +1,16 @@
+# Developer Guide
+
+## Development Setup
+
+How to clone the repository and set up the local development environment using hatch.
+
+## Running Tests
+The Hatch command to run tests (hatch run test).
+
+## Contributing
+
+Guidelines for pull requests, code style (linking to your ruff and pyright configurations), and a general contribution policy
+
 # API Documentation
 
 ::: jm-reusable-scripts
@@ -408,3 +421,11 @@ The project supports internationalization (i18n).  Hatch provides commands for m
     ```bash
     hatch run translate:python
     ```
+# Development
+
+Setup for developer: Setup the development environment
+Code Style & Linting: Use of ruff, pyright
+Tests: Test strategie (unit-tests, integrations-tests with py tests)
+CI/CD: Description of the github workflows 
+
+# Reference

@@ -1,17 +1,22 @@
 ---
-# SPDX-FileCopyrightText: Jürgen Mülbert
-# SPDX-Lice
+# SPDX-License-Identifier: EUPL-1.2
+# SPDX-FileCopyrightText: 2025-present Jürgen Mülbert <juergen.muelbert@outlook.de>
 
-name: Generate Changelog
-
+name: Release Pipeline
 on:
   push:
-    branches:
-      - main # Or your main/production branch
-
+    tags:
+      - 'v*.*.*'
+permissions:
+  contents: write
+  id-token: write
 jobs:
-  changelog:
+  build:
+    name: Build & Test
     runs-on: ubuntu-latest
+    timeout-minutes: 15
+    outputs:
+      version: ${{ steps.version.outputs.version }}
     steps:
       - name: 🔒 Harden Runner
         uses: step-security/harden-runner@v2
@@ -19,17 +24,39 @@ jobs:
           egress-policy: audit
       - name: 🧐 Checkout Repository
         uses: actions/checkout@v4
+      - name: Call Python Environment Setup
+        uses: ./.github/actions/python-setup
+      - name: Get Project Version
+        id: version
+        run: echo "version=$(hatch version)" >> "$GITHUB_OUTPUT"
+      - name: 📦 Build Python Package
+        run: hatch build
+      - name: 📤 Upload Artifacts
+        uses: actions/upload-artifact@v4
         with:
-          fetch-depth: 0
+          name: dist
+          path: dist/
 
-      - name: Build Changelog
-        id: github_release
-        uses: mikepenz/release-changelog-builder-action@v5
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Create Release
-        uses: mikepenz/action-gh-release@v0.2.0-a03 #softprops/action-gh-release
-        # TODO: #255 Runs in failure: Error: Failed to create the new release: Error: ⚠️ GitHub Releases requires a tag
+  release:
+    name: Create Release & Publish
+    needs: [build]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      id-token: write
+    steps:
+      - name: 📥 Download Artifacts
+        uses: actions/download-artifact@v4
         with:
-          body: ${{steps.github_release.outputs.changelog}}
+          name: dist
+          path: dist/
+      - name: 📢 Publish to PyPI
+        uses: pypa/gh-action-pypi-publish@v1
+        with:
+          password: ${{ secrets.PYPI_API_TOKEN }}
+      - name: 📝 Create GitHub Release
+        id: create_release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/*
+          generate_release_notes: true

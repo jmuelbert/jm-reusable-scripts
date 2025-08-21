@@ -2,17 +2,14 @@
 
 ![jm-reusable-scripts Logo](assets/images/logo.svg)
 
-jm-reusable-scripts is a tool to test network connectivity by checking the availability of predefined websites and NTP servers. This documentation will guide you through the installation, configuration, and usage of jm-reusable-scripts.
+jm-reusable-scripts is a set of scripts designed to check the qualitiy of the documentation. Additional are there  an check of the translation rate.
 
 ## Features
 
 ## Quickstart
 
-### Running the Program
+### Using the Scripts
 
-- Run the program: python jm-reusable-scripts.py
-- The program will check the availability of the predefined websites and NTP servers.
-- The results will be displayed in the console.
 
 ### Example Output
 

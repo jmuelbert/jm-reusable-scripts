@@ -1,5 +1,7 @@
-# SPDX-FileCopyrightText: Jürgen Mülbert <juergen.muelbert@web.de>
+---
 # SPDX-License-Identifier: EUPL-1.2
+# SPDX-FileCopyrightText: 2025-present Jürgen Mülbert <juergen.muelbert@outlook.de>
+
 name: Documentation Deployment
 on:
   push:
@@ -18,9 +20,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     permissions:
-      contents: write
-      pages: write
-      id-token: write
+      contents: read # Only needs permission to read the repository contents
     steps:
       - name: 🔒 Harden Runner
         uses: step-security/harden-runner@v2

@@ -1,5 +1,7 @@
+---
 # SPDX-FileCopyrightText: Open Source Security Foundation (OpenSSF)
 # SPDX-License-Identifier: Apache-2.0
+
 name: Security Scorecard
 on: # yamlint disable-line rule:truthy
   schedule:

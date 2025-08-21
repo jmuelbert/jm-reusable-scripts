@@ -1,10 +1,9 @@
----
 # SPDX-FileCopyrightText: GitHub, Inc. and contributors
 # SPDX-License-Identifier: MIT
 
 name: Dependabot Auto-Merge
 
-on: # yamllint disable-line rule:truthy
+on:
   pull_request:
     types: [opened, reopened, synchronize]
   pull_request_review:
@@ -29,12 +28,10 @@ jobs:
       !contains(github.event.pull_request.labels.*.name, 'do-not-merge')
     runs-on: ubuntu-latest
     timeout-minutes: 10
-
     permissions:
       contents: read
       pull-requests: write
       issues: write
-      repository-projects: write
 
     outputs:
       dependency-names: ${{ steps.metadata.outputs.dependency-names }}
@@ -56,7 +53,6 @@ jobs:
       - name: 🏷️ Add Labels
         id: labels
         uses: actions/github-script@v7
-        # TODO: #252 Runs in failure: SyntaxError: Missing initializer in const declaration
         env:
           DEPENDENCY_TYPE: ${{ steps.metadata.outputs.dependency-type }}
           UPDATE_TYPE: ${{ steps.metadata.outputs.update-type }}
@@ -64,9 +60,9 @@ jobs:
         with:
           script: |
             try {
-              const dependencyType = process.env.DEPENDENCY_TYPE; // Pass as an environment variable
-              const updateType = process.env.UPDATE_TYPE; // Pass as an environment variable
-              const alertState = process.env.ALERT_STATE; // Pass as an environment variable
+              const dependencyType = process.env.DEPENDENCY_TYPE;
+              const updateType = process.env.UPDATE_TYPE;
+              const alertState = process.env.ALERT_STATE;
 
               const labels = [];
 
@@ -91,9 +87,8 @@ jobs:
                 labels.push('security');
               }
 
-              // Ensure pull_request exists in the context payload
-              const pull request = context.payload.pull_request;
-              if (!pull request) {
+              const pr = context.payload.pull_request;
+              if (!pr) {
                 throw new Error('This workflow must be triggered by a pull request event.');
               }
 
@@ -101,7 +96,7 @@ jobs:
               await github.rest.issues.addLabels({
                 owner: context.repo.owner,
                 repo: context.repo.repo,
-                issue_number: context.payload.pull_request.number
+                issue_number: context.payload.pull_request.number,
                 labels: labels
               });
 
@@ -166,15 +161,12 @@ jobs:
     needs: dependabot
     if: always() && needs.dependabot.result != 'skipped'
     runs-on: ubuntu-latest
-
     permissions:
       issues: write
-
     steps:
       - name: 🔔 Notify on Failure
         if: needs.dependabot.result == 'failure'
         uses: actions/github-script@v7
-        # TODO: #254 Runs in failure: RequestError [HttpError]: Resource not accessible by integration
         with:
           script: |
             await github.rest.issues.createComment({

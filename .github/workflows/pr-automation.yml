@@ -1,0 +1,91 @@
+---
+# SPDX-License-Identifier: EUPL-1.2
+# SPDX-FileCopyrightText: 2025-present Jürgen Mülbert <juergen.muelbert@outlook.de>
+
+name: Pull Request Automation
+on:
+  pull_request:
+    types: [opened, edited, synchronize, reopened, ready_for_review]
+    paths-ignore:
+      - '**.md'
+      - 'docs/**'
+      - '.gitignore'
+  pull_request_target:
+    types: [opened, edited, synchronize, reopened, ready_for_review]
+    paths-ignore:
+      - '**.md'
+      - 'docs/**'
+      - '.gitignore'
+
+permissions:
+  contents: read
+  pull-requests: write
+
+env:
+  MIN_COVERAGE: 80
+  PYTHON_VERSION: '3.x'
+  NODE_VERSION: '16'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.sha }}
+  cancel-in-progress: true
+
+jobs:
+  analyze_and_label:
+    name: Analyze and Label Pull Request
+    if: github.actor != 'dependabot[bot]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    permissions:
+      contents: read
+      pull-requests: write
+      issues: write
+
+    steps:
+      - name: 🔒 Harden Runner
+        uses: step-security/harden-runner@v2
+        with:
+          egress-policy: audit
+      - name: 🧐 Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      # From commitment.yml
+      - name: 📝 Lint Commit Messages
+        uses: ahmadnassri/action-commit-lint@v2
+        with:
+          config: conventional
+
+      # From labeler.yml
+      - name: 🔄 Check Merge Conflicts
+        id: conflicts
+        uses: eps1lon/actions-label-merge-conflict@v3
+        # ... (rest of the step) ...
+
+      - name: 📏 Analyze Pull Request Size
+        id: size
+        uses: codelytv/pr-size-labeler@v1
+        # ... (rest of the step) ...
+
+      - name: 🏷️ Apply Scope Labels
+        id: labeler
+        uses: actions/labeler@v5
+        # ... (rest of the step) ...
+
+      - name: 📝 Process PR Content
+        uses: actions/github-script@v7
+        # ... (rest of the script) ...
+
+  verify:
+    name: Verify
+    needs: analyze_and_label
+    if: always()
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: ✅ Verify Workflow Completion
+        uses: re-actors/alls-green@223e4bb7a751b91f43eda76992bcfbf23b8b0302
+        with:
+          jobs: ${{ toJSON(needs) }}
