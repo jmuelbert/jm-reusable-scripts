@@ -69,6 +69,7 @@ jobs:
               commit_sha: context.sha,
               body: summary
             })
+            
   # Deploy job
   deploy:
     # Add a dependency to the build job
