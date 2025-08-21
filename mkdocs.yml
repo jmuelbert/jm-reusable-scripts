@@ -1,0 +1,159 @@
+---
+# Source: https://github.com/jmuelbert/python-my-project/blob/main/workflow-templates/assets/mkdocs/mkdocs.yml
+# See: https://www.mkdocs.org/user-guide/configuration/
+
+# --- Project Information ---
+site_name: python-my-project
+site_url: https://io.github.org/jmuelbert/python-my-project/
+site_description: >-
+  A modern Python project template with comprehensive tooling.
+# Repository
+repo_name: jmuelbert/python-my-project
+repo_url: https://github.com/jmuelbert/python-my-project/
+edit_uri: blob/main/docs/
+# Copyright
+copyright: Copyright &copy; 2023 - now Jürgen Mülbert
+
+# --- Configuration ---
+docs_dir: docs
+site_dir: site
+
+# --- Theme Configuration ---
+theme:
+  name: material
+  logo: assets/images/logo.svg
+  favicon: assets/images/favicon.ico
+  custom_dir: docs/.overrides
+  
+  features:
+    - content.code.copy
+    - content.code.annotate
+    - content.code.select
+    - header.autohide
+    - navigation.expand
+    - navigation.top
+    - search.suggest
+    - toc.follow
+  
+  palette:
+    # Palette toggle for light mode
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    # Palette toggle for dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+    
+  extra_css:
+    - css/custom.css
+  
+  icon:
+    repo: fontawesome/brands/github-alt
+    logo: material/check-network-outline
+    
+  font:
+    text: Roboto
+    code: Roboto Mono
+
+  shortcuts:
+    help: 191 # ?
+    next: 78 # n
+    previous: 80 # p
+    search: 83 # s
+
+# --- Plugins ---
+plugins:
+  # Built-in
+  search:
+    lang:
+      - en
+      - de
+      - es
+      - it
+      - zh
+  mike:
+    alias_type: copy
+  mkdocstrings:
+    handlers:
+      python:
+        paths: ["src"] # Point to the root 'src' directory
+        options:
+          show_source: false
+          show_root_heading: true
+          show_object_full_path: false
+          show_category_heading: true
+          show_bases: true
+          show_submodules: true  # Crucial for documenting modules
+          show_signature: true
+          show_signature_annotations: true
+          heading_level: 2
+          separate_signature: true
+          filters: ["!^_"] # Exclude private methods
+  i18n:
+    docs_structure: suffix
+    fallback_to_default: true
+    reconfigure_material: true
+    reconfigure_search: true
+    languages:
+      - locale: en
+        default: true
+        name: English
+        build: true
+        site_name: "My Project Documentation"
+      - locale: de
+        name: Deutsch
+        build: true
+        site_name: "Meine Projekt-Dokumentation
+  section-index: {}
+  awesome-pages: {}
+  glightbox: {}
+  
+# --- Markdown Extensions ---
+markdown_extensions:
+  - admonition
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.details  
+  - attr_list
+  - footnotes
+  - toc:
+      permalink: true
+
+# Customization
+extra:
+  version:
+    provider: mike
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/jmuelbert
+    - icon: fontawesome/brands/python
+      link: https://pypi.org/project/python-my-project/
+      
+watch:
+  - mkdocs.yml
+  - src/
+  - docs/
+
+# Page tree
+nav:
+  - Introduction: index.md
+  - Getting Started: getting-started/index.md
+  - User-Guide: user-guide/index.md
+  - Developer-Guide: developer-guide/index.md
+  - Api-Reference: api-reference.md
+  - Community: community/index.md
+  - About: about/index.md
