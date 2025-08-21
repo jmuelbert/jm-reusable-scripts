@@ -12,7 +12,7 @@ repo_name: jmuelbert/python-my-project
 repo_url: https://github.com/jmuelbert/python-my-project/
 edit_uri: blob/main/docs/
 # Copyright
-copyright: Copyright &copy; 2023 - now Jürgen Mülbert
+copyright: Copyright &copy; 2025 - now Jürgen Mülbert
 
 # --- Configuration ---
 docs_dir: docs
@@ -108,7 +108,7 @@ plugins:
       - locale: de
         name: Deutsch
         build: true
-        site_name: "Meine Projekt-Dokumentation
+        site_name: "Meine Projekt-Dokumentation"
   section-index: {}
   awesome-pages: {}
   glightbox: {}
