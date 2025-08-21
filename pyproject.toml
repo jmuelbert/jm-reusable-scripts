@@ -171,6 +171,7 @@ dependencies = [
   "mkdocs-click>=0.8.1,<0.9",
   "mkdocs-section-index>=0.3.0,<0.4",
   "mkdocs-git-revision-date-localized-plugin>=1.3.0,<1.4",
+  "mkdocs-glightbox>=0.4.0,<0.5",
   "jm-reusable-scripts @ git+https://github.com/jmuelbert/jm-reusable-scripts.git",
 ]
 
