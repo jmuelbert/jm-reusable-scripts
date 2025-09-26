@@ -1,0 +1,25 @@
+{
+  "labels": {
+    "types": {
+      "[BUG]": ["type-bug", "needs-triage"],
+      "[FEATURE]": ["type-feature", "needs-triage"],
+      "[DOCS]": ["documentation", "needs-triage"],
+      "[QUESTION]": ["question", "needs-triage"]
+    },
+    "triggers": {
+      "Traceback (most recent call last)": ["type-crash", "high-priority"],
+      "SecurityError": ["security", "high-priority"],
+      "regression": ["regression", "needs-investigation"]
+    },
+    "sizes": {
+      "small": 500,
+      "medium": 2000
+    }
+  },
+  "templates": {
+    "welcome": "👋 Thanks for opening this issue!\n\n Please make sure you have:\n- [ ] Checked existing issues\n- [ ] Provided necessary information\n- [ ] Added relevant labels\n\n Read our [Contributing Guidelines](../../CONTRIBUTING.md)",
+    "highPriority": "⚠️ This issue has been marked as high priority.",
+    "help": "🤝 This issue is available for anyone to work on!",
+    "goodFirst": "🌟 This is a great issue for first-time contributors!"
+  }
+}

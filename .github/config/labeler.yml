@@ -1,0 +1,60 @@
+---
+# .github/config/labeler.yml
+
+type/feat:
+  - any:
+      - "**/*.py"
+      - "**/feat/**"
+      - "**/feature/**"
+
+type/fix:
+  - any:
+      - "**/*.py"
+      - "**/fix/**"
+      - "**/hotfix/**"
+      - "**/bugfix/**"
+
+type/docs:
+  - any:
+      - docs/**/*
+      - "*.md"
+      - "*.markdown"
+      - "*.mdx"
+      - mkdocs.yml
+
+type/test:
+  - any:
+      - "**/tests/**"
+      - "**/test/**"
+      - "**/*_test.py"
+      - conftest.py
+
+type/ci:
+  - any:
+      - .github/workflows/**
+      - .github/actions/**
+      - .gitlab-ci.yml
+      - .travis.yml
+
+dependencies:
+  - any:
+      - pyproject.toml
+      - requirements.txt
+      - package.json
+      - "*-lock.*"
+      - poetry.lock
+      - pnpm-lock.yaml
+      - .pre-commit-config.yaml
+
+type/chore:
+  - any:
+      - .editorconfig
+      - .gitignore
+      - Taskfile.yml
+      - package.json
+      - .github/workflows/**
+      - bin/**
+      - .yamllint
+      - LICENSE*
+      - LICENSES/**
+      - REUSE.toml

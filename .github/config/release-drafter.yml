@@ -1,0 +1,49 @@
+---
+name-template: v$NEXT_PATCH_VERSION
+tag-template: v$NEXT_PATCH_VERSION
+
+categories:
+  - title: 🚀 Features
+    labels:
+      - type/feat
+      - type/enhancement
+  - title: 🐛 Bug Fixes
+    labels:
+      - type/fix
+  - title: 🛠 Refactoring
+    labels:
+      - type/refactor
+  - title: 📚 Documentation
+    labels:
+      - type/docs
+  - title: 🧪 Tests
+    labels:
+      - type/test
+  - title: 🧹 Maintenance
+    labels:
+      - type/chore
+      - type/maintenance
+      - type/dependencies
+
+version-resolver:
+  major:
+    labels:
+      - major
+  minor:
+    labels:
+      - minor
+  patch:
+    labels:
+      - patch
+  default: patch
+
+# The autolabeler section has been removed as you already use a dedicated labeler action.
+
+template: |
+  ## What's Changed
+
+  $CHANGES
+
+  ---
+  ## New Contributors
+  * @{{ contributors }} made their first contribution in #{{ number }}
