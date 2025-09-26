@@ -1,0 +1,37 @@
+---
+# .github/config/labels.yml
+#
+# yamllint disable rule:quoted-strings
+- name: type/feat
+  color: "0E8A16"
+  description: A new feature or enhancement.
+- name: type/fix
+  color: "D73A4A"
+  description: A bug fix.
+- name: type/docs
+  color: "006B75"
+  description: Documentation only changes.
+- name: type/style
+  color: "2486E6"
+  description: Changes that do not affect the meaning of the code.
+- name: type/refactor
+  color: "1D76DB"
+  description: A code change that neither fixes a bug nor adds a feature.
+- name: type/perf
+  color: "B60205"
+  description: A code change that improves performance.
+- name: type/test
+  color: "C7372D"
+  description: Adding or changing tests.
+- name: type/chore
+  color: "FEF2C0"
+  description: Routine tasks and maintenance.
+- name: type/ci
+  color: "0075CA"
+  description: Changes to our CI configuration files and scripts.
+- name: dependencies
+  color: "0366D6"
+  description: Updates to dependencies.
+- name: breaking
+  color: "B60205"
+  description: A change that introduces a breaking change.

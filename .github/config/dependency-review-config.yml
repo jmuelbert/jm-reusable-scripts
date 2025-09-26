@@ -1,7 +1,4 @@
 ---
-# SPDX-License-Identifier: EUPL-1.2
-# SPDX-FileCopyrightText: 2024 Jürgen Mülbert <juergen.muelbert@outlook.de>
-#
 # Dependency review configuration
 rules:
   - name: Block high severity vulnerabilities

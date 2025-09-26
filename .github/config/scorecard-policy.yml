@@ -1,11 +1,11 @@
 ---
 # SPDX-License-Identifier: EUPL-1.2
-# SPDX-FileCopyrightText: 2024 Jürgen Mülbert <juergen.muelbert@outlook.de>
+# SPDX-FileCopyrightText: 2024-present Jürgen Mülbert <juergen.muelbert@outlook.de>
 #
 version: 1.0
 checks:
-  - id: 'CICD'
+  - id: CICD
     enabled: true
-  - id: 'VULNERABILITIES'
+  - id: VULNERABILITIES
     enabled: true
   # Add other checks as needed

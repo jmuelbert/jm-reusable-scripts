@@ -1,0 +1,43 @@
+# Gitleaks Config for a typical project
+
+# Custom rules tailored to a specific project.
+# These will be combined with Gitleaks' default rules.
+
+[[rules]]
+description = "Qt database connection string"
+id          = "qt-database-connection"
+regex       = '''(?i)(?P<key>qt[._-]?db[._-]?(?:connection|string))\s*[=:]\s*['"](?P<value>[^'"]+)['"]'''
+tags        = ["database", "Qt"]
+
+[[rules]]
+description = "PySide API key"
+id          = "pyside-api-key"
+regex       = '''(?i)(?P<key>(?:pyside|qt)[._-]?api[._-]?key)\s*[=:]\s*['"](?P<value>[^'"]+)['"]'''
+tags        = ["key", "PySide"]
+
+[[rules]]
+description = "Python secret key"
+id          = "python-secret-key"
+regex       = '''(?i)(?P<key>secret[._-]?key)\s*[=:]\s*['"](?P<value>[^'"]+)['"]'''
+tags        = ["key", "Python"]
+
+# Additional common rules you might need.
+
+[[rules]]
+description = "Generic API Key"
+id          = "generic-api-key"
+regex       = '''(?i)(?P<key>(?:api|auth|token)[._-]?key)\s*[=:]\s*['"](?P<value>[a-z0-9_]{16,64})['"]'''
+tags        = ["key"]
+
+[[rules]]
+description = "AWS Access Key ID"
+id          = "aws-access-key"
+# cspell:disable-next-line
+regex = '''(A3T[A-Z0-9]|AKIA|AGPA|AIDA|AROA|ASYA|AIPA|ANPA|ANVA|ASIA)[A-Z0-9]{16,64}'''
+tags  = ["aws"]
+
+[[rules]]
+description = "SSH Private Key"
+id          = "ssh-private-key"
+regex       = '''-----BEGIN (RSA|DSA|EC|OPENSSH) PRIVATE KEY-----'''
+tags        = ["key"]
